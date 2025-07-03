@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Bước 1: Đọc dữ liệu từ file (giả định tên file là 'owid-covid-data.csv')
-file_path = r"C:/Việt Anh/Thuctap/owid-covid-data.csv"  
+file_path = r"C:/Vanh/Thuctap/expert-system-demo/owid-covid-data.csv"  
 df = pd.read_csv(file_path, sep=';')
 
 # In ra số lượng nước khác nhau ban đầu
@@ -94,31 +94,38 @@ k_optimal = 3
 kmeans = KMeans(n_clusters=k_optimal, random_state=42, n_init=10)
 normalized_df['cluster'] = kmeans.fit_predict(X)
 
-# In kết quả phân cụm
-print(normalized_df[['location', 'cluster']])
-# Nếu muốn lưu kết quả ra file:
-# normalized_df.to_csv('clustered_countries.csv', index=False, sep=';')
+#Biểu đồ phân cụm
 from sklearn.decomposition import PCA
 
-# Giảm số chiều xuống 2 để trực quan hóa
+# Giảm số chiều về 2D để trực quan hóa
 pca = PCA(n_components=2)
-reduced_data = pca.fit_transform(X)
+components = pca.fit_transform(X)
 
-# Tạo DataFrame mới chứa 2 thành phần chính và nhãn cụm
-pca_df = pd.DataFrame(data=reduced_data, columns=['PC1', 'PC2'])
+# Tạo DataFrame cho biểu đồ
+pca_df = pd.DataFrame(data=components, columns=['PC1', 'PC2'])
 pca_df['cluster'] = normalized_df['cluster']
 pca_df['location'] = normalized_df['location']
 
-# Vẽ biểu đồ phân cụm
-plt.figure(figsize=(10, 7))
-for cluster in sorted(pca_df['cluster'].unique()):
-    cluster_data = pca_df[pca_df['cluster'] == cluster]
-    plt.scatter(cluster_data['PC1'], cluster_data['PC2'], label=f'Cụm {cluster}', s=60)
+# Vẽ scatter plot
+plt.figure(figsize=(10, 6))
+for cluster_id in sorted(pca_df['cluster'].unique()):
+    clustered = pca_df[pca_df['cluster'] == cluster_id]
+    plt.scatter(clustered['PC1'], clustered['PC2'], label=f'Cụm {cluster_id}', s=60)
 
-plt.xlabel('Thànhphần chính 1 (PC1)')
-plt.ylabel('Thành phần chính 2 (PC2)')
 plt.title('Biểu đồ phân cụm các quốc gia (sau PCA)')
+plt.xlabel('PC1') #Thành phần chính 1
+plt.ylabel('PC2') #Thành phần chính 2
 plt.legend()
 plt.grid(True)
-plt.tight_layout()
 plt.show()
+
+# print("Trọng số của các đặc trưng trong PC1 và PC2:")
+# for i, component in enumerate(pca.components_):
+#     print(f"PC{i+1}:")
+#     for feature, weight in zip(X.columns, component):
+#         print(f"  {feature}: {weight:.4f}")
+
+# In kết quả phân cụm
+print(normalized_df[['location', 'cluster']])
+# Nếu muốn lưu kết quả ra file:
+normalized_df.to_csv('clustered_countries.csv', index=False, sep=';')
