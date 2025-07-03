@@ -98,3 +98,27 @@ normalized_df['cluster'] = kmeans.fit_predict(X)
 print(normalized_df[['location', 'cluster']])
 # Nếu muốn lưu kết quả ra file:
 # normalized_df.to_csv('clustered_countries.csv', index=False, sep=';')
+from sklearn.decomposition import PCA
+
+# Giảm số chiều xuống 2 để trực quan hóa
+pca = PCA(n_components=2)
+reduced_data = pca.fit_transform(X)
+
+# Tạo DataFrame mới chứa 2 thành phần chính và nhãn cụm
+pca_df = pd.DataFrame(data=reduced_data, columns=['PC1', 'PC2'])
+pca_df['cluster'] = normalized_df['cluster']
+pca_df['location'] = normalized_df['location']
+
+# Vẽ biểu đồ phân cụm
+plt.figure(figsize=(10, 7))
+for cluster in sorted(pca_df['cluster'].unique()):
+    cluster_data = pca_df[pca_df['cluster'] == cluster]
+    plt.scatter(cluster_data['PC1'], cluster_data['PC2'], label=f'Cụm {cluster}', s=60)
+
+plt.xlabel('Thànhphần chính 1 (PC1)')
+plt.ylabel('Thành phần chính 2 (PC2)')
+plt.title('Biểu đồ phân cụm các quốc gia (sau PCA)')
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
